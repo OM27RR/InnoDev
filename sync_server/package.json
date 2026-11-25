@@ -1,10 +1,12 @@
+
 {
   "name": "sync_server",
   "private": true,
   "scripts": {
-    "start": "y-websocket"
+    "start": "HOST=0.0.0.0 npx y-websocket"
   },
   "dependencies": {
-    "@y/websocket-server": "^0.1.1"
+    "@y/websocket-server": "^0.1.5",
+    "yjs": "^13.6.33"
   }
 }
