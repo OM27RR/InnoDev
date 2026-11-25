@@ -13,7 +13,14 @@ const room = location.hash.slice(1) || 'default-room'
 const ydoc = new Y.Doc()
 new IndexeddbPersistence('editor-' + room, ydoc)
 const wsUrl = import.meta.env.VITE_WS_URL || `ws://${location.hostname}:1234`
-const provider = new WebsocketProvider(wsUrl, room, ydoc)
+const params = new URLSearchParams(window.location.search)
+const roomName = params.get('room') || 'default-innodev-room'
+
+const wsProvider = new WebsocketProvider(
+  'wss://innodev.onrender.com',
+  roomName,
+  doc
+)
 provider.on('status', e => {
   document.getElementById('status').textContent = e.status
 })
