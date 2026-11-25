@@ -8,7 +8,8 @@ import { yCollab } from 'y-codemirror.next'
 
 // --- room comes from the URL hash: http://localhost:5173/#my-room
 if (!location.hash) location.hash = crypto.randomUUID()
-const room = location.hash.slice(1) || 'default-innodev-room'
+// --- fixed room for easy testing across devices
+const room = 'default-innodev-room'
 
 // --- single shared Y.Doc for WebSocket + IndexedDB + CodeMirror
 const doc = new Y.Doc()
