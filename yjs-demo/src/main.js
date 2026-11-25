@@ -7,11 +7,13 @@ import { javascript } from '@codemirror/lang-javascript'
 import { yCollab } from 'y-codemirror.next'
 
 // --- room comes from the URL: http://localhost:5173/#my-room
+if (!location.hash) location.hash = crypto.randomUUID()
 const room = location.hash.slice(1) || 'default-room'
 
 const ydoc = new Y.Doc()
 new IndexeddbPersistence('editor-' + room, ydoc)
-const provider = new WebsocketProvider('ws://localhost:1234', room, ydoc)
+const wsUrl = import.meta.env.VITE_WS_URL || `ws://${location.hostname}:1234`
+const provider = new WebsocketProvider(wsUrl, room, ydoc)
 provider.on('status', e => {
   document.getElementById('status').textContent = e.status
 })
