@@ -6,27 +6,26 @@ import { EditorState } from '@codemirror/state'
 import { javascript } from '@codemirror/lang-javascript'
 import { yCollab } from 'y-codemirror.next'
 
-// --- room comes from the URL: http://localhost:5173/#my-room
+// --- room comes from the URL hash: http://localhost:5173/#my-room
 if (!location.hash) location.hash = crypto.randomUUID()
-const room = location.hash.slice(1) || 'default-room'
+const room = location.hash.slice(1) || 'default-innodev-room'
 
-const ydoc = new Y.Doc()
-new IndexeddbPersistence('editor-' + room, ydoc)
-const wsUrl = import.meta.env.VITE_WS_URL || `ws://${location.hostname}:1234`
-const params = new URLSearchParams(window.location.search)
-const roomName = params.get('room') || 'default-innodev-room'
+// --- single shared Y.Doc for WebSocket + IndexedDB + CodeMirror
+const doc = new Y.Doc()
+new IndexeddbPersistence('editor-' + room, doc)
 
-const wsProvider = new WebsocketProvider(
+const provider = new WebsocketProvider(
   'wss://innodev.onrender.com',
-  roomName,
+  room,
   doc
 )
-provider.on('status', e => {
+
+provider.on('status', (e) => {
   document.getElementById('status').textContent = e.status
 })
 
 // --- shared text: this IS the code file
-const ytext = ydoc.getText('code')
+const ytext = doc.getText('code')
 
 // --- who am I? (shown on my cursor and in the user list)
 const colors = ['#30bced', '#6eeb83', '#ffbc42', '#ecd444', '#ee6352', '#9ac2c9', '#8acb88', '#1be7ff']
@@ -39,11 +38,10 @@ awareness.setLocalStateField('status', 'idle')
 
 // --- "typing..." status: set when I edit, reset after 1.5s
 let idleTimer
-const activityListener = EditorView.updateListener.of(update => {
-  // only edits made locally by this user, not remote changes applied by Yjs
-  const isMine = update.transactions.some(tr =>
-    tr.isUserEvent('input') ||   // typing, pasting
-    tr.isUserEvent('delete') ||  // backspace, delete
+const activityListener = EditorView.updateListener.of((update) => {
+  const isMine = update.transactions.some((tr) =>
+    tr.isUserEvent('input') ||
+    tr.isUserEvent('delete') ||
     tr.isUserEvent('undo') ||
     tr.isUserEvent('redo')
   )
@@ -60,7 +58,7 @@ const state = EditorState.create({
   extensions: [
     basicSetup,
     javascript(),
-    yCollab(ytext, awareness), // syncs text + draws remote cursors/selections
+    yCollab(ytext, awareness),
     activityListener,
   ],
 })
@@ -75,7 +73,7 @@ function renderUsers() {
     const el = document.createElement('span')
     el.className = 'user'
     el.style.background = s.user.color
-    const me = clientId === ydoc.clientID ? ' (you)' : ''
+    const me = clientId === doc.clientID ? ' (you)' : ''
     el.textContent = `${s.user.name}${me} · ${s.status || 'idle'}`
     box.append(el)
   })
